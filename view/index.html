@@ -1,0 +1,162 @@
+
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Dynamic Markup with JavaScript Example</title>
+       <script language="javascript"  src="http://code.jquery.com/jquery-1.4.2.min.js"></script>
+
+
+	<style>
+		.collapsible {
+  		background-color: #777;
+  		color: white;
+ 		 cursor: pointer;
+  		padding: 18px;
+  		width: 100%;
+  		border: none;
+  		text-align: left;
+  		outline: none;
+  		font-size: 15px;
+		}
+
+		.active, .collapsible:hover {
+  		background-color: #555;
+		}
+
+		.content {
+ 		padding: 0 18px;
+ 	 	display: none;
+ 	 	overflow: hidden;
+  		background-color: #f1f1f1;
+		}
+
+
+.tooltip {
+  position: relative;
+  display: inline-block;
+  border-bottom: 1px dotted black;
+  z-index: 100;
+}
+
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 720px;
+  background-color: white;
+  color: black;
+  text-align: left;
+  border-radius: 6px;
+  padding: 5px 0;
+
+  /* Position the tooltip */
+  position: absolute;
+  z-index: 100;
+}
+
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+}
+
+	</style>
+
+
+    </head>
+	<script id="demo" type="text/javascript">
+		
+		var jsonData = {};
+
+		$(document).ready(function() {
+			// our array of objects for some data to play with
+			//by_clusters();
+
+		});
+		
+		
+		function by_clusters(){
+			$.getJSON('states2words.json',function(data){
+    			jsonData = data;
+			create_page("cluster");
+			add_listerners();
+			});
+		}
+		
+		function by_words(){
+			$.getJSON('words2states.json',function(data){
+    			jsonData = data;
+			create_page("word");
+			add_listerners();
+			});
+		}
+		
+		
+		
+		function add_listerners(){
+			var coll = document.getElementsByClassName("collapsible");
+			var i;
+
+			for (i = 0; i < coll.length; i++) {
+ 				 coll[i].addEventListener("click", function() {
+    				this.classList.toggle("active");
+    				var content = this.nextElementSibling;
+    				if (content.style.display === "block") {
+      					content.style.display = "none";
+   				 } else {
+      					content.style.display = "block";
+    				}
+ 				 });
+			}
+		}
+		
+		function create_page(mode){
+			var page = "<div>"
+			const keys = Object.keys(jsonData).sort(function(a,b){ return parseInt(jsonData[b]["size"])- parseInt(jsonData[a]["size"])})
+			for (var i = 0; i < keys.length; i ++) {
+				var key = keys[i];
+				var values = mode == "word"? "clusters":"words"
+				var word2contexts = jsonData[key][values]
+				const clustr_words = Object.keys(word2contexts).sort(function(a,b){ return  word2contexts[b].length - word2contexts[a].length})
+				page += get_collapasable(key, clustr_words, word2contexts, mode)
+
+			}
+			page += "</div>"
+			$("#body").html(page);
+		}
+			
+		function get_collapasable(cluster_number, cluster_words, word2contexts, mode){
+
+			collapsable = "<button class=collapsible>" +  "<font size='6'>" + mode + ": " + cluster_number +  "</font>" + "</button>"
+			collapsable += "<div class='content'>"
+
+	
+			for (var i = 0; i < cluster_words.length; i++){
+
+				 var w = mode == "word"? cluster_number:cluster_words[i];
+				 var word2contexts_key = mode == "word" ? cluster_words[i] : w;
+				 var type = mode == "word"? "cluster":"word";
+				 
+				 collapsable += "<p> <div class='tooltip'>" + "<font size='5'>" + type + ': "' + word2contexts_key + '"; count: ' + word2contexts[cluster_words[i]].length  + "</font>"
+				 collapsable += "<span class='tooltiptext'> <ul>"
+				 for (var j = 0; j < Math.min(15, word2contexts[word2contexts_key].length); j++){
+				 	var context = (word2contexts[word2contexts_key][j]).toString().split(" ");
+				 	var w_index = context.indexOf(w)
+				 	var left_context = context.slice(0, w_index).join(" ")
+				 	var right_context =  context.slice(w_index + 1, context.length).join(" ")
+				 	collapsable += "<li>..." + left_context + " <b>" + w + " </b>" + right_context + "...</li>"
+				 }
+				 collapsable += "</ul> </span> </div>"
+
+			}
+			collapsable += "</div> </p>"
+
+			return collapsable;
+			}
+	</script>
+
+
+
+    <body>
+    		<p>Both clusters and words are sorted according to frequency.</p>
+    		<button type="button" onclick="by_clusters()">By clusters</button>
+    		<button type="button" onclick="by_words()">By words</button>
+		<div id="body"></div>
+    </body>
+</html>
