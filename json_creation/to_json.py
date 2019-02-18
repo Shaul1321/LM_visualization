@@ -13,6 +13,7 @@ def read_file(fname):
 
 
 def calculate_cluster_word_entropy(cluster_words):
+	#TODO: add this info to the jsons
 
 	raise NotImplementedError
 	
