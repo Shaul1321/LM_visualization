@@ -11,4 +11,4 @@ Running
 ------
 
 Running requires python3 and [bottle](https://bottlepy.org/docs/dev/) (`pip3 install bottle`). `python3 main.py` would initialize the server, and the visualization is
-then avaialble at `http://localhost:8080/`.
+then avaialble in the browser at `http://localhost:8080/`.
