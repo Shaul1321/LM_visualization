@@ -1,0 +1,197 @@
+
+<html>
+    <head>
+   	 <script language="javascript" src="http://code.jquery.com/jquery-1.4.2.min.js"></script>
+        <meta charset="utf-8">
+	<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+
+        <title>LM clusters visualization</title>
+
+
+	<style>
+
+
+	.tooltip {
+	  position: relative;
+ 	 display: inline-block;
+ 	 border-bottom: 1px dotted black;
+  	z-index: 100;
+	}
+
+	.tooltip .tooltiptext {
+	  visibility: hidden;
+ 	 width: 720px;
+ 	 background-color: black;
+  	 color: white;
+  	 text-align: left;
+  	 border-radius: 6px;
+ 	 padding: 5px 0;
+
+ 	 /* Position the tooltip */
+ 	 position: absolute;
+ 	 margin-left:+150px;
+ 	 margin-top: -100px;
+ 	 z-index: 100;
+ 	top: -50px;
+  	left: 105%; 
+	}
+
+	.tooltip:hover .tooltiptext {
+	  visibility: visible;
+	}
+	
+	</style>
+
+
+    </head>
+	<script id="demo" type="text/javascript">
+		var mode = null;
+		var current = null;
+		var prev = null;
+		var history_stack = [];
+
+		function get_elemets(type){
+			
+			$.ajax({
+    				url: 'http://localhost:8080/' + type,
+    				dataType: 'json',
+    				complete : function(){
+    				},
+    				success: function(json_list){
+    				
+    					elements_list = '<div class="w3-container"> <ul class="w3-ul w3-hoverable">';
+
+    					for (var i = 0; i < json_list.length; i++){
+    						//console.log(json_list[i]);
+    						var token = json_list[i][0];
+    						var count = json_list[i][1];
+    						//console.log(token);	    						    	//console.log(count);
+
+						var onclick = type == "words" ? 'onclick="get_word(\'' +  token +  '\')">': 'onclick="get_clust(\'' +  token +  '\')">'
+    						elements_list += '<li> <button type="button" class="w3-button w3-block"' + onclick + "<font size = '5'>" + token + "</font> (count: " + count + ')</button> </li>'
+    					}
+    					
+    					elements_list += '</ul> </div>';
+					update_previous(elements_list);
+    					$("#app-body").html(elements_list);
+    				}
+			});		
+		}
+		
+		
+		function get_occurrences(token, type){
+			const title = type == "words"? "word": "cluster";
+			const opposite = title == "word" ? "cluster":"word";
+			elements_list = "<p> <font size = '7'>" + title + ": " + token + " </font> </p>";
+			$.ajax({
+    				url: 'http://localhost:8080/' + type + "/" + token,
+    				dataType: 'json',
+    				complete : function(){
+    				},
+    				success: function(jsonData){
+    					const token2occurrences = jsonData;
+    					const occurrences = Object.keys(token2occurrences).sort(function(a,b){ return  token2occurrences[b].length - token2occurrences[a].length})
+    					elements_list += '<div class="w3-container"> <ul class="w3-ul w3-hoverable">';
+    					//elements_list = '<div > <ul >';
+    					for (var i = 0; i < occurrences.length; i++){
+    						var key = occurrences[i];
+						var w = title == "word"? token : key;
+
+						//elements_list += '<button type="button" class="w3-button w3-block" onclick="get_clust(\'' +  key +  '\')">'; 
+						var contexts = token2occurrences[key];
+						var size = contexts.length;
+						var onclick = type == "clusters" ? 'onclick="get_word(\'' +  key +  '\')">': 'onclick="get_clust(\'' +  key +  '\')">'
+						elements_list += '<li> <div class="tooltip">' + '<button type="button" class="w3-button w3-block"' + onclick  + opposite + ": " + key + "; size: " + size + '</button>' + '<span class="tooltiptext"> <ul>';
+ 
+				 		for (var j = 0; j < Math.min(12, contexts.length); j++){
+							var context = contexts[j].toString().split(" ");
+		 					var w_index = context.indexOf(w);
+				 			var left_context = context.slice(0, w_index).join(" ");
+				 			var right_context =  context.slice(w_index + 1, context.length).join(" ");
+							elements_list +=  "<li>..." + left_context + "<span color = 'red'> <font size = '5'> " + w + " </font> </span>" + right_context  + '...</li>';
+						}
+
+						elements_list += '</ul></span> </div> </li>'
+						elements_list += ' </li>'
+		
+    					}
+    					
+    					elements_list += '</ul> </div>';
+					update_previous(elements_list);
+    					$("#app-body").html(elements_list);
+    				}
+			});		
+		}
+		
+		function get_word(word){
+			get_occurrences(word, "words")
+		}
+		
+		
+		function get_clust(clust){
+
+			get_occurrences(clust, "clusters")
+		}
+		
+		function get_all_words(){
+			mode = "words";
+			get_elemets("words");
+		}
+		
+		function get_all_clusts(){
+
+			mode = "clusters"
+			get_elemets("clusters");
+		}
+		
+		
+		function update_previous(new_page){
+			history_stack.push(new_page);
+			//var curr = $("#app-body").text()
+			return;
+			/***
+			if (prev == null){
+				prev = new_page;
+				current = new_page;
+			} else{
+				var dummy = current;
+				current = new_page;
+				prev = dummy;
+			}
+			***/
+			
+		}
+
+		
+		function get_back(){
+
+			if (history_stack.length <= 1){
+				return;
+			}
+			
+			if (history_stack.length == 1 ){
+			var prev = history_stack[history_stack.length - 1];
+			}
+			if (history_stack.length >=2){
+				var curr = history_stack.pop();
+				var prev = history_stack.pop();
+				history_stack.push(prev);
+			}
+   			$("#app-body").html(prev);
+
+		}
+		
+
+	
+	</script>
+
+    <body>
+        	<button type="button" class="w3-btn w3-black" onclick="get_all_clusts()">By clusters</button>
+    		<button type="button" class="w3-btn w3-black" onclick="get_all_words()">By words</button>
+    		<button type="button" class="w3-btn w3-black" onclick="get_back()">Back</button>
+		<div id="app-body"></div>
+    </body>
+
+
+
+</html>
