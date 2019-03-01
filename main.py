@@ -95,7 +95,7 @@ def server_static(filename="index2.html"):
 """
 
 #@route('/status/')
-#@route('/status/filename#.*#')
+@route('/index.html')
 @route('/')
 def server_static(filename='index.html'):
     return static_file(filename, root='./')
@@ -119,24 +119,32 @@ def get_words():
 @get('/clusters') # or @route('/login')
 def get_clusters():
 
-	return json.dumps(clusts_by_freq)
+	return template('results.tpl', elements_by_freq = clusts_by_freq, type = "clusters")
 
 
 @get('/words') # or @route('/login')
 def get_words():
+	return template('results.tpl', elements_by_freq = words_by_freq, type = "words")
 
-	return json.dumps(words_by_freq)
+@get('/results.html') # or @route('/login')
+def get_results():
 
+	return static_file("results.html", root='./')
 	
-@route('/words/<word>')
-def get_word(word):
+@get('/logic.js') # or @route('/login')
+def get_script():
 
-	return json.dumps(words2states[word]["clusters"])
+	return static_file("logic.js", root='./')
+	
+@route('/words/<word_token>')
+def get_word(word_token):
+	return template('results_for_token.tpl', type = "words", token = word_token, token2occurrences = words2states[word_token]["clusters"].items())
 
 @route('/clusters/<clust>')
 def get_cluster(clust):
 
-	return json.dumps(state2words[clust]["words"])
+	return template('results_for_token.tpl', type = "clusters", token = clust, token2occurrences = state2words[clust]["words"].items())
+
 
 if __name__ == '__main__':
 

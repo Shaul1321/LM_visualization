@@ -1,4 +1,3 @@
-
 <html>
     <head>
    	 <script language="javascript" src="http://code.jquery.com/jquery-1.4.2.min.js"></script>
@@ -44,11 +43,28 @@
 
 
     </head>
+	
 
     <body>
+
         	<a class = "w3-btn w3-black" href = "./clusters"> By clusters</font> </a>
     		<a class = "w3-btn w3-black" href = "./words"> By words</font> </a>
-		<div id="app-body"></div>
+
+		<div id="app-body">
+		
+		<div class="w3-container"> 
+			<ul class="w3-ul w3-hoverable">
+				% for (token, count) in elements_by_freq:
+
+					<li> 
+						<a class = "w3-button w3-block" href = "{{type}}/{{token}}"> 
+							<font size = '5'> {{token}} </font> 
+						 </a>
+					</li>
+				% end
+			'</ul> 
+		</div>
+		</div>
     </body>
 
 
